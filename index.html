@@ -24,17 +24,17 @@
         <button onclick="submitGuess()">추측하기</button>
         <div id="hints"></div>
         <div id="result"></div>
-        <!-- 광고 공간 -->
         <div id="ad-space" style="margin-top: 20px;">
             <p>[광고가 여기에 표시됩니다]</p>
         </div>
         <div id="modal" class="modal">
             <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
+                <span class="close" onclick="closeModal()">×</span>
                 <div id="modal-content"></div>
             </div>
         </div>
     </div>
     <script src="script.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
 </body>
 </html>
