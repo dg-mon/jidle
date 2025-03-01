@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지들 - 나라 맞추기 게임</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>지들</h1>
+        <div id="outline-container">
+            <svg id="country-outline" width="300" height="200"></svg>
+        </div>
+        <input type="text" id="guess-input" placeholder="나라 이름 입력 (예: 대한민국)">
+        <button onclick="submitGuess()">추측하기</button>
+        <div id="hints"></div>
+        <div id="result"></div>
+        <!-- 광고 공간 -->
+        <div id="ad-space" style="margin-top: 20px;">
+            <p>[광고가 여기에 표시됩니다]</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
