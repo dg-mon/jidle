@@ -21,7 +21,7 @@ fetch('countries.geojson')
         document.getElementById("difficulty").textContent = todayCountry.difficulty;
         updateAttemptsLeft();
 
-        // 자동 완성 예시 (오타 방지)
+        // 자동 완성 예시 (한글/영어, 오타 방지)
         const suggestions = [...countries.map(c => c.name_kr), ...countries.map(c => c.name_en)];
         const datalist = document.getElementById("country-suggestions");
         suggestions.forEach(suggestion => {
@@ -109,17 +109,17 @@ fetch('countries.geojson')
         function shareResult() {
             const text = `지들 ${attempts}/6, 난이도: ${todayCountry.difficulty}\n${document.getElementById("hints").innerText}\nhttps://jidle.kr`;
             navigator.clipboard.writeText(text);
-            alert("결과가 클립보드에 복사됐습니다!");
+            alert("결과가 클립보드에 복사됐습니다! X에 공유하세요.");
         }
 
-        // 모달 기능
+        // 모달 기능 (한국어로)
         function showStats() {
             document.getElementById("modal-content").innerHTML = "<h2>기록</h2><p>아직 기록이 없습니다. 게임을 더 플레이해보세요!</p>";
             document.getElementById("modal").style.display = "block";
         }
 
         function showSettings() {
-            document.getElementById("modal-content").innerHTML = "<h2>설정</h2><p>언어: 한글/영어 (현재 한글)</p><button onclick='toggleLanguage()'>언어 전환</button>";
+            document.getElementById("modal-content").innerHTML = "<h2>설정</h2><p>언어: 한국어 (고정)</p>";
             document.getElementById("modal").style.display = "block";
         }
 
@@ -133,7 +133,7 @@ fetch('countries.geojson')
         }
 
         function toggleLanguage() {
-            alert("언어 전환 기능은 준비 중입니다!");
+            alert("언어는 한국어로 고정되어 있습니다!");
         }
 
         // 중심 좌표 계산 (Turf.js 사용)
