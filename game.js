@@ -1,4 +1,4 @@
-const { Engine, Render, World, Bodies, Body, Constraint, Runner, Composite, Matter } = Matter;
+const { Engine, Render, World, Bodies, Body, Constraint, Runner } = Matter;
 
 const engine = Engine.create();
 const canvas = document.getElementById('gameCanvas');
@@ -8,12 +8,12 @@ const render = Render.create({
     options: { width: 800, height: 600, wireframes: false, background: '#e0e0e0' }
 });
 
-engine.world.gravity.y = 3;
+engine.world.gravity.y = 5; // 중력 강화
 
 // 지렁이 생성
-const head = Bodies.circle(400, 550, 20, { restitution: 0.1, mass: 1, render: { fillStyle: '#000' } });
-const midBody = Bodies.circle(400, 560, 15, { restitution: 0.1, mass: 1, render: { fillStyle: '#000' } });
-const tail = Bodies.circle(400, 570, 20, { restitution: 0.1, mass: 1, render: { fillStyle: '#000' } });
+const head = Bodies.circle(400, 550, 20, { restitution: 0.1, mass: 5, render: { fillStyle: '#000' } });
+const midBody = Bodies.circle(400, 560, 15, { restitution: 0.1, mass: 5, render: { fillStyle: '#000' } });
+const tail = Bodies.circle(400, 570, 20, { restitution: 0.1, mass: 5, render: { fillStyle: '#000' } });
 
 const headToMid = Constraint.create({ bodyA: head, bodyB: midBody, length: 30, stiffness: 0.05, damping: 0.2, render: { strokeStyle: '#000', lineWidth: 3 } });
 const midToTail = Constraint.create({ bodyA: midBody, bodyB: tail, length: 30, stiffness: 0.05, damping: 0.2, render: { strokeStyle: '#000', lineWidth: 3 } });
@@ -24,14 +24,18 @@ const platform2 = Bodies.rectangle(300, 300, 80, 20, { isStatic: true, friction:
 
 World.add(engine.world, [head, midBody, tail, headToMid, midToTail, ground, platform1, platform2]);
 
-let sensitivity = 0.001;
+let sensitivity = 0.0005; // 민감도 낮춤
 const sensitivitySlider = document.getElementById('sensitivity');
 sensitivitySlider.addEventListener('input', (event) => { sensitivity = parseFloat(event.target.value); });
 
 let headGrabbed = false, tailGrabbed = false;
 
 function grabBody(body) {
-    const nearbyBodies = Matter.Query.point([ground, platform1, platform2], body.position);
+    const bounds = { 
+        min: { x: body.position.x - 10, y: body.position.y - 10 }, 
+        max: { x: body.position.x + 10, y: body.position.y + 10 } 
+    };
+    const nearbyBodies = Matter.Query.region([ground, platform1, platform2], bounds);
     if (nearbyBodies.length > 0) {
         body.isStatic = true;
         return true;
@@ -40,8 +44,8 @@ function grabBody(body) {
 }
 
 canvas.addEventListener('mousedown', (event) => {
-    if (event.button === 0) headGrabbed = grabBody(head);  // 좌클릭: 머리 고정
-    else if (event.button === 2) tailGrabbed = grabBody(tail);  // 우클릭: 꼬리 고정
+    if (event.button === 0) headGrabbed = grabBody(head); // 좌클릭: 머리 고정
+    else if (event.button === 2) tailGrabbed = grabBody(tail); // 우클릭: 꼬리 고정
 });
 
 canvas.addEventListener('mouseup', (event) => {
@@ -79,11 +83,16 @@ function updateCamera() {
 
 const startScreen = document.getElementById('startScreen');
 const startButton = document.getElementById('startButton');
+let gameStarted = false;
+
 startButton.addEventListener('click', () => {
-    startScreen.style.display = 'none';
-    Runner.run(engine);
-    Render.run(render);
-    Matter.Events.on(engine, 'beforeUpdate', updateCamera);
+    if (!gameStarted) {
+        startScreen.style.display = 'none';
+        gameStarted = true;
+        Runner.run(engine); // 엔진 시작
+        Render.run(render); // 렌더링 시작
+        Matter.Events.on(engine, 'beforeUpdate', updateCamera); // 카메라 업데이트
+    }
 });
 
 canvas.oncontextmenu = (e) => e.preventDefault();
