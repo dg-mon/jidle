@@ -2,64 +2,15 @@
 <html>
 <head>
     <title>Jidle</title>
-    <meta name="description" content="worm up">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #e0e0e0;
-            overflow: hidden;
-        }
-        #gameContainer {
-            position: relative;
-            width: 800px;
-            max-width: 100%;
-            height: 600px;
-        }
-        #gameCanvas {
-            width: 100%;
-            height: 100%;
-            border: 1px solid black;
-            background: #e0e0e0;
-        }
-        #startScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-        #startScreen h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-        #startButton {
-            padding: 10px 20px;
-            font-size: 24px;
-            cursor: pointer;
-            background: #fff;
-            border: 2px solid #000;
-            border-radius: 5px;
-        }
-        #settings {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
+        body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #e0e0e0; overflow: hidden; }
+        #gameContainer { position: relative; width: 800px; max-width: 100%; height: 600px; }
+        #gameCanvas { width: 100%; height: 100%; border: 1px solid black; background: #e0e0e0; }
+        #startScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.7); color: white; font-family: Arial, sans-serif; }
+        #startScreen h1 { font-size: 48px; margin-bottom: 20px; }
+        #startButton { padding: 10px 20px; font-size: 24px; cursor: pointer; background: #fff; border: 2px solid #000; border-radius: 5px; }
+        #settings { position: absolute; top: 10px; right: 10px; color: white; font-family: Arial, sans-serif; }
     </style>
 </head>
 <body>
@@ -71,7 +22,7 @@
         </div>
         <div id="settings">
             <label for="sensitivity">Sensitivity: </label>
-            <input type="range" id="sensitivity" min="0.001" max="0.02" step="0.001" value="0.005">
+            <input type="range" id="sensitivity" min="0.0001" max="0.005" step="0.0001" value="0.001">
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
