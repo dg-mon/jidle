@@ -1,4 +1,4 @@
-const { Engine, Render, World, Bodies, Body, Constraint, Runner } = Matter;
+const { Engine, Render, World, Bodies, Body, Constraint, Runner, Composite } = Matter;
 
 const engine = Engine.create();
 const canvas = document.getElementById('gameCanvas');
@@ -13,17 +13,26 @@ const render = Render.create({
     }
 });
 
-engine.world.gravity.y = 3;  // 중력 강화
+engine.world.gravity.y = 3;
 
-// 지렁이 (머리와 꼬리 연결)
-const head = Bodies.circle(400, 550, 20, { restitution: 0.3, mass: 2, render: { fillStyle: '#000' } });
-const tail = Bodies.circle(400, 570, 20, { restitution: 0.3, mass: 2, render: { fillStyle: '#000' } });
-const bodyConstraint = Constraint.create({
+// 지렁이 (중앙 몸통 추가)
+const head = Bodies.circle(400, 550, 20, { restitution: 0.3, mass: 1, render: { fillStyle: '#000' } });
+const tail = Bodies.circle(400, 570, 20, { restitution: 0.3, mass: 1, render: { fillStyle: '#000' } });
+const midBody = Bodies.circle(400, 560, 15, { restitution: 0.3, mass: 1, render: { fillStyle: '#000' } });
+const headToMid = Constraint.create({
     bodyA: head,
+    bodyB: midBody,
+    length: 30,
+    stiffness: 0.2,
+    damping: 0.1,
+    render: { strokeStyle: '#000', lineWidth: 3 }
+});
+const midToTail = Constraint.create({
+    bodyA: midBody,
     bodyB: tail,
-    length: 50,
-    stiffness: 0.2,  // 수축/늘림 강도
-    damping: 0.1,    // 반동 감쇠
+    length: 30,
+    stiffness: 0.2,
+    damping: 0.1,
     render: { strokeStyle: '#000', lineWidth: 3 }
 });
 
@@ -31,7 +40,7 @@ const ground = Bodies.rectangle(400, 600, 800, 40, { isStatic: true, render: { f
 const platform1 = Bodies.rectangle(500, 400, 100, 20, { isStatic: true, render: { fillStyle: '#808080' } });
 const platform2 = Bodies.rectangle(300, 300, 80, 20, { isStatic: true, friction: 0.2, render: { fillStyle: '#808080' } });
 
-World.add(engine.world, [head, tail, bodyConstraint, ground, platform1, platform2]);
+World.add(engine.world, [head, midBody, tail, headToMid, midToTail, ground, platform1, platform2]);
 
 let sensitivity = 0.005;
 const sensitivitySlider = document.getElementById('sensitivity');
@@ -40,24 +49,28 @@ sensitivitySlider.addEventListener('input', (event) => {
 });
 
 let headGrabbed = false, tailGrabbed = false;
+
+// 그랩 체크 함수
+function checkGrab(body, mousePos) {
+    const nearbyBodies = Matter.Query.point([ground, platform1, platform2], body.position);
+    if (nearbyBodies.length > 0) {
+        Body.setPosition(body, { x: body.position.x, y: body.position.y });
+        body.isStatic = true;
+        return true;
+    }
+    return false;
+}
+
 canvas.addEventListener('mousedown', (event) => {
     const rect = canvas.getBoundingClientRect();
     const mousePos = {
         x: (event.clientX - rect.left) * (render.options.width / rect.width),
         y: (event.clientY - rect.top) * (render.options.height / rect.height)
     };
-    if (event.button === 0) {
-        if (Matter.Bounds.contains(platform1.bounds, mousePos) || Matter.Bounds.contains(platform2.bounds, mousePos) || Matter.Bounds.contains(ground.bounds, mousePos)) {
-            Body.setPosition(head, mousePos);
-            head.isStatic = true;
-            headGrabbed = true;
-        }
-    } else if (event.button === 2) {
-        if (Matter.Bounds.contains(platform1.bounds, mousePos) || Matter.Bounds.contains(platform2.bounds, mousePos) || Matter.Bounds.contains(ground.bounds, mousePos)) {
-            Body.setPosition(tail, mousePos);
-            tail.isStatic = true;
-            tailGrabbed = true;
-        }
+    if (event.button === 0) {  // 좌클릭: 머리 그랩
+        headGrabbed = checkGrab(head, mousePos);
+    } else if (event.button === 2) {  // 우클릭: 꼬리 그랩
+        tailGrabbed = checkGrab(tail, mousePos);
     }
 });
 
@@ -82,23 +95,21 @@ canvas.addEventListener('mousemove', (event) => {
         y: event.movementY * (render.options.height / rect.height)
     };
 
-    // 머리 또는 꼬리가 고정된 상태에서 스윙/점프
-    if (headGrabbed && !tail.isStatic) {
-        const direction = { x: mousePos.x - head.position.x, y: mousePos.y - head.position.y };
+    // 조작 로직
+    if (!headGrabbed && !tailGrabbed) {  // 둘 다 안 잡음
+        const force = { x: mouseDelta.x * sensitivity, y: mouseDelta.y * sensitivity };
+        Body.applyForce(midBody, midBody.position, force);
+    } else if (headGrabbed && tailGrabbed) {  // 둘 다 잡음
+        const force = { x: mouseDelta.x * sensitivity, y: mouseDelta.y * sensitivity };
+        Body.applyForce(midBody, midBody.position, force);
+    } else if (headGrabbed && !tailGrabbed) {  // 머리만 잡음
+        const direction = { x: mousePos.x - midBody.position.x, y: mousePos.y - midBody.position.y };
         const force = { x: direction.x * sensitivity, y: direction.y * sensitivity };
-        Body.applyForce(tail, tail.position, force);  // 꼬리에 힘 적용
-    } else if (tailGrabbed && !head.isStatic) {
-        const direction = { x: mousePos.x - tail.position.x, y: mousePos.y - tail.position.y };
+        Body.applyForce(tail, tail.position, force);
+    } else if (!headGrabbed && tailGrabbed) {  // 꼬리만 잡음
+        const direction = { x: mousePos.x - midBody.position.x, y: mousePos.y - midBody.position.y };
         const force = { x: direction.x * sensitivity, y: direction.y * sensitivity };
-        Body.applyForce(head, head.position, force);  // 머리에 힘 적용
-    } else if (!headGrabbed && !tailGrabbed) {
-        // 둘 다 안 잡혔을 때 수축 후 점프
-        const currentLength = Matter.Vector.magnitude(Matter.Vector.sub(head.position, tail.position));
-        if (currentLength > bodyConstraint.length) {
-            const jumpForce = { x: mouseDelta.x * sensitivity * 2, y: mouseDelta.y * sensitivity * 2 };
-            Body.applyForce(head, head.position, jumpForce);
-            Body.applyForce(tail, tail.position, { x: -jumpForce.x, y: -jumpForce.y });
-        }
+        Body.applyForce(head, head.position, force);
     }
 });
 
