@@ -1,6 +1,6 @@
 const { Engine, Render, World, Bodies, Body, Constraint, Runner } = Matter;
 
-const engine = Engine.create();
+const engine = Engine.create({ timing: { timeScale: 0 } }); // 처음에는 엔진 정지
 const canvas = document.getElementById('gameCanvas');
 const render = Render.create({
     canvas: canvas,
@@ -8,7 +8,7 @@ const render = Render.create({
     options: { width: 800, height: 600, wireframes: false, background: '#e0e0e0' }
 });
 
-engine.world.gravity.y = 5; // 중력 강화
+engine.world.gravity.y = 5;
 
 // 지렁이 생성
 const head = Bodies.circle(400, 550, 20, { restitution: 0.1, mass: 5, render: { fillStyle: '#000' } });
@@ -24,7 +24,7 @@ const platform2 = Bodies.rectangle(300, 300, 80, 20, { isStatic: true, friction:
 
 World.add(engine.world, [head, midBody, tail, headToMid, midToTail, ground, platform1, platform2]);
 
-let sensitivity = 0.0005; // 민감도 낮춤
+let sensitivity = 0.0005;
 const sensitivitySlider = document.getElementById('sensitivity');
 sensitivitySlider.addEventListener('input', (event) => { sensitivity = parseFloat(event.target.value); });
 
@@ -38,19 +38,20 @@ function grabBody(body) {
     const nearbyBodies = Matter.Query.region([ground, platform1, platform2], bounds);
     if (nearbyBodies.length > 0) {
         body.isStatic = true;
+        console.log(`${body === head ? 'Head' : 'Tail'} grabbed`);
         return true;
     }
     return false;
 }
 
 canvas.addEventListener('mousedown', (event) => {
-    if (event.button === 0) headGrabbed = grabBody(head); // 좌클릭: 머리 고정
-    else if (event.button === 2) tailGrabbed = grabBody(tail); // 우클릭: 꼬리 고정
+    if (event.button === 0) headGrabbed = grabBody(head);
+    else if (event.button === 2) tailGrabbed = grabBody(tail);
 });
 
 canvas.addEventListener('mouseup', (event) => {
-    if (event.button === 0 && headGrabbed) { head.isStatic = false; headGrabbed = false; }
-    else if (event.button === 2 && tailGrabbed) { tail.isStatic = false; tailGrabbed = false; }
+    if (event.button === 0 && headGrabbed) { head.isStatic = false; headGrabbed = false; console.log('Head released'); }
+    else if (event.button === 2 && tailGrabbed) { tail.isStatic = false; tailGrabbed = false; console.log('Tail released'); }
 });
 
 canvas.addEventListener('mousemove', (event) => {
@@ -81,18 +82,17 @@ function updateCamera() {
     Render.lookAt(render, { min: { x: lerpX - render.options.width / 2, y: lerpY - render.options.height / 2 }, max: { x: lerpX + render.options.width / 2, y: lerpY + render.options.height / 2 } });
 }
 
-const startScreen = document.getElementById('startScreen');
-const startButton = document.getElementById('startButton');
-let gameStarted = false;
+// 게임 초기화 및 시작
+const runner = Runner.create();
+const startScreen = document.getElementById('startButton');
 
 startButton.addEventListener('click', () => {
-    if (!gameStarted) {
-        startScreen.style.display = 'none';
-        gameStarted = true;
-        Runner.run(engine); // 엔진 시작
-        Render.run(render); // 렌더링 시작
-        Matter.Events.on(engine, 'beforeUpdate', updateCamera); // 카메라 업데이트
-    }
+    console.log('Start button clicked');
+    document.getElementById('startScreen').style.display = 'none';
+    engine.timing.timeScale = 1; // 엔진 활성화
+    Runner.run(runner, engine); // 물리 엔진 실행
+    Render.run(render); // 렌더링 시작
+    Matter.Events.on(engine, 'beforeUpdate', updateCamera); // 카메라 업데이트
 });
 
 canvas.oncontextmenu = (e) => e.preventDefault();
