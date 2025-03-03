@@ -24,9 +24,12 @@ const platform2 = Bodies.rectangle(300, 300, 80, 20, { isStatic: true, friction:
 
 World.add(engine.world, [head, midBody, tail, headToMid, midToTail, ground, platform1, platform2]);
 
-let sensitivity = 0.001; // 민감도 증가
+let sensitivity = 0.002; // 민감도 조정
 const sensitivitySlider = document.getElementById('sensitivity');
-sensitivitySlider.addEventListener('input', (event) => { sensitivity = parseFloat(event.target.value); });
+sensitivitySlider.addEventListener('input', (event) => { 
+    sensitivity = parseFloat(event.target.value); 
+    console.log(`Sensitivity changed to: ${sensitivity}`);
+});
 
 let headGrabbed = false, tailGrabbed = false;
 
@@ -45,6 +48,7 @@ function grabBody(body) {
 }
 
 canvas.addEventListener('mousedown', (event) => {
+    console.log(`Mouse down: button ${event.button}`);
     if (event.button === 0) headGrabbed = grabBody(head);
     else if (event.button === 2) tailGrabbed = grabBody(tail);
 });
@@ -70,15 +74,15 @@ canvas.addEventListener('mousemove', (event) => {
 
     if (headGrabbed && !tailGrabbed) {
         const direction = { x: mousePos.x - tail.position.x, y: mousePos.y - tail.position.y };
-        const forceMagnitude = Math.sqrt(direction.x * direction.x + direction.y * direction.y) * sensitivity;
-        const force = { x: direction.x * forceMagnitude, y: direction.y * forceMagnitude };
+        const distance = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+        const force = { x: (direction.x / distance) * sensitivity * 10, y: (direction.y / distance) * sensitivity * 10 }; // 힘 강화
         Body.applyForce(tail, tail.position, force);
         Body.applyForce(midBody, midBody.position, { x: force.x * 0.5, y: force.y * 0.5 });
         console.log(`Applying force to tail: ${force.x}, ${force.y}`);
     } else if (!headGrabbed && tailGrabbed) {
         const direction = { x: mousePos.x - head.position.x, y: mousePos.y - head.position.y };
-        const forceMagnitude = Math.sqrt(direction.x * direction.x + direction.y * direction.y) * sensitivity;
-        const force = { x: direction.x * forceMagnitude, y: direction.y * forceMagnitude };
+        const distance = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+        const force = { x: (direction.x / distance) * sensitivity * 10, y: (direction.y / distance) * sensitivity * 10 }; // 힘 강화
         Body.applyForce(head, head.position, force);
         Body.applyForce(midBody, midBody.position, { x: force.x * 0.5, y: force.y * 0.5 });
         console.log(`Applying force to head: ${force.x}, ${force.y}`);
